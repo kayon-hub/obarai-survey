@@ -353,9 +353,36 @@
     }).then(function(res){ return res.json().then(function(j){ return { res: res, j: j }; }); })
       .then(function(o){
         if (o.res.ok && o.j.ok) { done(true, "✓ 已寄至 hello@obarai.com，我們將依此內容與您聯繫。"); return; }
-        tryGasFallback();
+        tryFormSubmit();
       })
-      .catch(function(){ tryGasFallback(); });
+      .catch(function(){ tryFormSubmit(); });
+
+    function tryFormSubmit(){
+      var c = payload.data.contact || {};
+      var ind = (payload.recommendation.industry && payload.recommendation.industry.name) || "";
+      var subj = "【ORBIT 診斷】" + (c.company || "未填公司") + (ind ? " · " + ind : "");
+      fetch("https://formsubmit.co/ajax/hello@obarai.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: subj,
+          _captcha: "false",
+          _template: "table",
+          company: c.company || "",
+          contact_name: c.name || "",
+          contact: c.email || c.phone || "",
+          industry: ind,
+          assumptions: payload.assumptions || "",
+          full_json: JSON.stringify(payload)
+        })
+      }).then(function(res){ return res.json(); })
+        .then(function(j){
+          if (j.success === "true" || j.success === true) {
+            done(true, "✓ 已寄至 hello@obarai.com，我們將依此內容與您聯繫。");
+          } else { tryGasFallback(); }
+        })
+        .catch(function(){ tryGasFallback(); });
+    }
 
     function tryGasFallback(){
       var gas = window.SURVEY_MAIL_URL;
