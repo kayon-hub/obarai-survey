@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORBIT 企業經營診斷</title>
+<meta name="description" content="ORBIT 模組配置診斷——依產業變形，產出分階段導入建議">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#d8d2c0; --desk:#cec6ae; --page:#faf7ee; --page-2:#f2ede1;
+    --spine:rgba(23,20,15,0.16); --border:rgba(23,21,18,0.14); --border-soft:rgba(23,21,18,0.08);
+    --ink:#1c1811; --ink-soft:rgba(28,24,17,0.68); --ink-faint:rgba(28,24,17,0.44);
+    --gold:#96733a; --gold-ink:#6d5023; --gold-08:rgba(150,115,58,0.09); --gold-16:rgba(150,115,58,0.17);
+    --hl:rgba(214,168,64,0.38); --shadow:rgba(20,16,8,0.28);
+    --serif:'Noto Serif TC',Georgia,serif; --tc:'Noto Sans TC','PingFang TC',sans-serif; --sans:'Inter',sans-serif;
+    --ok:#2d6a4f; --ok-bg:rgba(45,106,79,0.1);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:var(--tc); color:var(--ink); background:var(--bg); overflow:hidden;
+    background-image:radial-gradient(ellipse 70% 50% at 50% -10%,var(--gold-08) 0%,transparent 60%);
+  }
+  button,input,select,textarea{font:inherit;color:inherit;}
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:20;height:44px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:0 18px;background:var(--page);border-bottom:1px solid var(--border);
+    font-family:var(--sans);box-shadow:0 4px 20px rgba(20,16,8,0.06);
+  }
+  .topbar .title{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
+  .topbar .step{font-size:11px;color:var(--ink-faint);letter-spacing:.08em;}
+  .topbar .url{
+    font-size:11px;color:var(--gold-ink);text-decoration:none;
+    padding:5px 10px;border-radius:99px;background:var(--gold-08);border:1px solid var(--border-soft);
+    max-width:min(52vw,420px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .topbar .url:hover{background:var(--gold-16);}
+  @media(max-width:640px){.topbar .url{display:none;}}
+  .stage{position:fixed;inset:44px 0 0;display:flex;align-items:center;justify-content:center;padding:min(4vh,40px) 16px;}
+  .book{
+    position:relative;width:min(820px,96vw);height:min(90vh,920px);
+    filter:drop-shadow(0 28px 48px var(--shadow));
+  }
+  .leaf{
+    position:absolute;inset:0;background:var(--page);border:1px solid var(--border);
+    border-radius:3px 10px 10px 3px;display:flex;flex-direction:column;overflow:hidden;
+    background-image:linear-gradient(90deg,var(--spine) 0,transparent 22px),linear-gradient(180deg,var(--page-2),var(--page) 88px);
+  }
+  .head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:14px 40px;border-bottom:1px solid var(--border-soft);flex:none;
+    font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .head b{color:var(--gold-ink);font-weight:700;}
+  .scroll{flex:1;overflow-y:auto;padding:36px 44px 28px;}
+  @media(max-width:640px){.scroll{padding:28px 20px 20px;}.head{padding:12px 20px;}}
+  .foot{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 24px;border-top:1px solid var(--border-soft);flex:none;
+    font-family:var(--sans);font-size:11px;color:var(--ink-faint);
+  }
+  .rail{flex:1;max-width:200px;height:2px;background:var(--border);border-radius:99px;overflow:hidden;}
+  .rail i{display:block;height:100%;background:var(--gold);width:var(--pct,0%);transition:width .3s;}
+  .cover{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;}
+  .cover-mark{font-family:var(--sans);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-faint);}
+  .cover h1{font-family:var(--serif);font-weight:900;font-size:clamp(32px,7vw,52px);margin:20px 0 8px;}
+  .cover .sub{font-family:var(--serif);font-size:clamp(15px,2.4vw,18px);color:var(--ink-soft);margin:0;max-width:36ch;line-height:1.7;}
+  .cover .ed{margin-top:24px;font-family:var(--sans);font-size:11px;color:var(--ink-faint);}
+  .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 10px;}
+  .h1{font-family:var(--serif);font-size:clamp(24px,4vw,30px);font-weight:700;margin:0 0 8px;}
+  .lead{font-size:14.5px;line-height:1.85;color:var(--ink-soft);margin:0 0 22px;max-width:58ch;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);}
+  .field .hint{font-size:12px;color:var(--ink-faint);font-weight:400;margin-top:4px;}
+  .field input[type=text],.field input[type=number],.field input[type=email],.field input[type=tel],.field select,.field textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:8px;background:#fff;
+  }
+  .field textarea{min-height:72px;resize:vertical;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    padding:8px 14px;border-radius:99px;border:1px solid var(--border);background:#fff;
+    font-size:13px;cursor:pointer;transition:.15s;user-select:none;
+  }
+  .chip:hover{border-color:var(--gold-16);color:var(--gold-ink);}
+  .chip.on{background:var(--gold-08);border-color:var(--gold);color:var(--gold-ink);font-weight:600;}
+  .morph-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:520px){.morph-grid{grid-template-columns:1fr;}}
+  .morph-item{padding:12px 14px;border-radius:8px;background:var(--gold-08);border:1px solid var(--border-soft);font-size:13px;}
+  .morph-item span{display:block;font-family:var(--sans);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .mod-card{
+    padding:14px 16px;border:1px solid var(--border-soft);border-radius:10px;margin-bottom:12px;background:#fff;
+  }
+  .mod-card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px;}
+  .mod-card .tag{font-family:var(--sans);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);}
+  .mod-card .name{font-weight:700;font-size:15px;}
+  .mod-card .sub{font-size:13px;color:var(--ink-soft);line-height:1.6;}
+  .score-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .score-btn{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:#fff;
+    font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .score-btn.on{background:var(--gold);border-color:var(--gold);color:#fff;}
+  .score-btn:hover{border-color:var(--gold);}
+  .chain{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-soft);cursor:pointer;}
+  .chain:last-child{border-bottom:none;}
+  .chain input{margin-top:3px;flex:none;}
+  .chain .t{font-size:14px;line-height:1.7;color:var(--ink-soft);}
+  .chain.on .t{color:var(--ink);font-weight:500;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 24px;border-radius:99px;border:1px solid var(--gold-16);background:var(--gold-08);
+    font-size:14px;font-weight:600;color:var(--gold-ink);cursor:pointer;transition:.15s;
+  }
+  .btn:hover{background:var(--gold-16);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn.ghost{background:transparent;border-color:var(--border);}
+  .btn.sm{padding:8px 16px;font-size:12px;}
+  .result-hero{
+    padding:18px 20px;border-radius:10px;background:var(--ok-bg);border:1px solid rgba(45,106,79,0.2);margin-bottom:22px;
+  }
+  .result-hero p{margin:0;font-size:14px;line-height:1.8;color:var(--ink-soft);}
+  .result-hero strong{color:var(--ok);}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+  th{font-family:var(--sans);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
+  .phase{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--sans);}
+  .phase.p1{background:var(--gold-16);color:var(--gold-ink);}
+  .phase.p2{background:rgba(28,24,17,0.08);color:var(--ink-soft);}
+  .phase.pc{background:rgba(150,115,58,0.12);color:var(--gold-ink);}
+  .phase.ps{color:var(--ink-faint);}
+  .assump{
+    font-family:var(--sans);font-size:12px;line-height:1.75;color:var(--ink-soft);
+    background:rgba(28,24,17,0.04);padding:14px 16px;border-radius:8px;white-space:pre-wrap;
+  }
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <span class="title">ORBIT 企業經營診斷</span>
+  <a class="url" id="topUrl" href="#" title="本頁網址"></a>
+  <span class="step" id="topStep">封面</span>
+</header>
+<div class="stage"><div class="book"><div class="leaf" id="leaf"></div></div></div>
+<script src="orbit-survey-config.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var STEPS = ["cover","profile","morph","modules","chains","contact","result"];
+  var step = 0;
+  var data = {
+    industryId: "generic",
+    headcount: "10",
+    sites: [],
+    moduleScores: {},
+    priorityChains: [],
+    accounts: "",
+    rollout: "pilot",
+    integration: "replace",
+    systems: [],
+    contact: { company: "", name: "", email: "", phone: "" },
+    note: ""
+  };
+
+  var leaf = document.getElementById("leaf");
+
+  function pct(){ return Math.round((step / (STEPS.length - 1)) * 100); }
+
+  function headLabel(){
+    var labels = { cover:"封面", profile:"組織輪廓", morph:"介面預覽", modules:"模組需求", chains:"優先流程", contact:"導入與聯絡", result:"建議書" };
+    return labels[STEPS[step]] || "";
+  }
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function industryOptions(){
+    var html = "";
+    Object.keys(ORBIT_SURVEY.INDUSTRIES).forEach(function(k){
+      var ind = ORBIT_SURVEY.INDUSTRIES[k];
+      html += '<option value="' + k + '"' + (data.industryId === k ? ' selected' : '') + '>' + esc(ind.name) + '</option>';
+    });
+    return html;
+  }
+
+  function siteChips(){
+    var opts = [
+      { id:"single", label:"單一據點" },
+      { id:"multi2", label:"2～10 個據點" },
+      { id:"multi11", label:"11～50 個據點" },
+      { id:"multi51", label:"51 個以上" },
+      { id:"warehouse", label:"獨立倉庫／物流中心" },
+      { id:"multiwh", label:"多倉跨區調撥" },
+      { id:"global", label:"跨縣市或跨國" }
+    ];
+    return opts.map(function(o){
+      var on = data.sites.indexOf(o.id) >= 0 ? " on" : "";
+      return '<button type="button" class="chip' + on + '" data-site="' + o.id + '">' + esc(o.label) + '</button>';
+    }).join("");
+  }
+
+  function renderMorph(){
+    var ind = ORBIT_SURVEY.getIndustry(data.industryId);
+    var L = ind.labels;
+    var pairs = [
+      ["服務對象", L.customer],
+      ["排程／預約", L.reservation],
+      ["資源單位", L.tableOrRoom],
+      ["結帳", L.checkoutLabel],
+      ["庫存／資產", L.inventory],
+      ["第一線人員", L.staff]
+    ];
+    return pairs.map(function(p){
+      return '<div class="morph-item"><span>' + esc(p[0]) + '</span>' + esc(p[1]) + '</div>';
+    }).join("");
+  }
+
+  function renderModules(){
+    var ind = ORBIT_SURVEY.getIndustry(data.industryId);
+    var singleSite = data.sites.indexOf("single") >= 0 && data.sites.indexOf("multi2") < 0;
+    var ctx = { singleSite: singleSite, hasWarehouse: data.sites.indexOf("warehouse") >= 0 };
+    var mods = ORBIT_SURVEY.getVisibleModules(data.industryId, ctx);
+    return mods.map(function(m){
+      var cur = data.moduleScores[m.id] || 0;
+      var scores = [1,2,3,4,5].map(function(n){
+        return '<button type="button" class="score-btn' + (cur === n ? ' on' : '') + '" data-mod="' + m.id + '" data-score="' + n + '">' + n + '</button>';
+      }).join("");
+      var base = m.baseline ? ' <span style="font-size:11px;color:var(--ink-faint)">（基礎含）</span>' : '';
+      var custom = m.custom ? ' <span style="font-size:11px;color:var(--gold-ink)">（客製專案）</span>' : '';
+      return '<div class="mod-card" data-module="' + m.id + '">' +
+        '<div class="top"><div><div class="tag">' + esc(m.tag) + '</div><div class="name">' + esc(m.name) + base + custom + '</div></div></div>' +
+        '<div class="sub">在貴組織即：' + esc(m.hint(ind.labels)) + '</div>' +
+        '<div style="margin-top:10px;font-size:11px;color:var(--ink-faint);margin-bottom:6px">1 不需要　5 沒有就無法運作</div>' +
+        '<div class="score-row">' + scores + '</div></div>';
+    }).join("");
+  }
+
+  function renderChains(){
+    var ind = ORBIT_SURVEY.getIndustry(data.industryId);
+    return ind.chains.map(function(c){
+      var on = data.priorityChains.indexOf(c.id) >= 0 ? " on" : "";
+      var checked = on ? " checked" : "";
+      return '<label class="chain' + on + '"><input type="checkbox" data-chain="' + c.id + '"' + checked + '><span class="t">' + esc(c.text) + '</span></label>';
+    }).join("");
+  }
+
+  function renderResult(){
+    var rec = ORBIT_SURVEY.buildRecommendation(data);
+    var ind = rec.industry;
+    var rows = rec.rows.map(function(r){
+      var cls = r.phase === "Phase 1" ? "p1" : r.phase === "Phase 2" ? "p2" : r.phase === "專案洽談" ? "pc" : "ps";
+      return '<tr><td><span class="phase ' + cls + '">' + esc(r.phase) + '</span></td>' +
+        '<td><strong>' + esc(r.tag) + '</strong><br><span style="color:var(--ink-faint);font-size:12px">' + esc(r.inYourWords) + '</span></td>' +
+        '<td style="text-align:center">' + r.score + '</td>' +
+        '<td style="font-size:12px;color:var(--ink-faint)">' + esc(r.note || "—") + '</td></tr>';
+    }).join("");
+
+    var chains = rec.priorityChains.length
+      ? rec.priorityChains.map(function(c){ return "・" + c.text; }).join("<br>")
+      : "（未指定，將依模組分數排序）";
+
+    var assumptions = [
+      "【報價假設清單 — 內部用】",
+      "產業：" + ind.name,
+      "規模：" + rec.scale.label,
+      "人力：" + data.headcount + " 人",
+      "系統帳號：" + (data.accounts || "待確認"),
+      "據點：" + (data.sites.join("、") || "未填"),
+      "導入方式：" + rolloutLabel(data.rollout),
+      "與現有系統：" + integrationLabel(data.integration),
+      "Phase 1：" + (rec.phase1.join("、") || "—"),
+      "Phase 2：" + (rec.phase2.join("、") || "—"),
+      "客製專案：" + (rec.custom.join("、") || "—"),
+      "聯絡：" + (data.contact.company || "—") + "／" + (data.contact.name || "—") + "／" + (data.contact.email || data.contact.phone || "—")
+    ].join("\n");
+
+    window.__lastReport = { data: JSON.parse(JSON.stringify(data)), recommendation: rec, assumptions: assumptions };
+
+    return '<p class="eyebrow">診斷完成</p>' +
+      '<h1 class="h1">模組配置建議書</h1>' +
+      '<div class="result-hero"><p>依 <strong>' + esc(ind.name) + '</strong>、<strong>' + esc(rec.scale.label) + '</strong> 的設定，' +
+      '系統將以 <strong>' + esc(ind.labels.customer) + '／' + esc(ind.labels.reservation) + '／' + esc(ind.labels.inventory) + '</strong> 等名詞呈現。' +
+      '以下為分階段導入建議，具體費用由顧問依範圍<strong>客製報價</strong>。</p></div>' +
+      '<p class="eyebrow" style="margin-top:20px">建議啟用模組</p>' +
+      '<table><thead><tr><th>階段</th><th>模組</th><th>重要度</th><th>備註</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<p class="eyebrow">優先打通流程</p><p class="lead" style="margin-bottom:16px">' + chains + '</p>' +
+      (data.note ? '<p class="eyebrow">負責人補充</p><p class="lead">' + esc(data.note) + '</p>' : '') +
+      '<p class="eyebrow">報價前置（複製給業務）</p><div class="assump" id="assumpBox">' + esc(assumptions) + '</div>' +
+      '<div class="actions">' +
+        '<button type="button" class="btn sm" id="btnCopy">複製報價假設</button>' +
+        '<button type="button" class="btn sm" id="btnJson">複製完整 JSON</button>' +
+        '<button type="button" class="btn sm ghost" id="btnPrint">列印</button>' +
+        '<button type="button" class="btn sm ghost" id="btnRestart">重新填寫</button>' +
+      '</div>';
+  }
+
+  function rolloutLabel(v){
+    return { pilot:"試點後擴散", parallel:"多據點同期", rollout:"分區分年", hq:"先總部再據點" }[v] || v;
+  }
+  function integrationLabel(v){
+    return { replace:"逐步取代", coexist:"並行後切換", gap:"只補缺口", new:"全新導入" }[v] || v;
+  }
+
+  function renderBody(){
+    if (STEPS[step] === "cover") {
+      return '<div class="cover">' +
+        '<div class="cover-mark">OBARAI INTELLIGENCE</div>' +
+        '<h1>ORBIT<br>企業經營診斷</h1>' +
+        '<p class="sub">依您的產業與組織規模，產出模組分階段建議。<br>從 2 人團隊到 2 萬人企業，同一套平台。</p>' +
+        '<p class="ed">約 8 分鐘 · 客製報價前置 · 名詞隨產業變形</p>' +
+        '<button type="button" class="btn" id="btnStart" style="margin-top:32px">開始診斷</button></div>';
+    }
+    if (STEPS[step] === "profile") {
+      return '<p class="eyebrow">Step 1</p><h1 class="h1">組織輪廓</h1>' +
+        '<p class="lead">先了解規模與據點，後續模組建議會依複雜度調整。</p>' +
+        '<div class="field"><label>主要產業</label><select id="industry">' + industryOptions() + '</select></div>' +
+        '<div class="field"><label>全職人力規模</label><select id="headcount">' +
+          '<option value="8">2～10 人</option><option value="30">11～50 人</option><option value="100">51～200 人</option>' +
+          '<option value="500">201～1,000 人</option><option value="2500">1,001～5,000 人</option>' +
+          '<option value="10000">5,001～20,000 人</option><option value="25000">20,000 人以上</option>' +
+        '</select></div>' +
+        '<div class="field"><label>營運據點（可複選）</label><div class="chips" id="siteChips">' + siteChips() + '</div></div>';
+    }
+    if (STEPS[step] === "morph") {
+      return '<p class="eyebrow">Step 2</p><h1 class="h1">您的 ORBIT 介面預覽</h1>' +
+        '<p class="lead">同一套模組，在您的產業會自動換成這些名詞——建議書與系統設定將一致。</p>' +
+        '<div class="morph-grid">' + renderMorph() + '</div>';
+    }
+    if (STEPS[step] === "modules") {
+      return '<p class="eyebrow">Step 3</p><h1 class="h1">模組需求</h1>' +
+        '<p class="lead">請評估各模組對目前營運的重要程度。不相關的模組已自動隱藏。</p>' +
+        '<div id="modList">' + renderModules() + '</div>';
+    }
+    if (STEPS[step] === "chains") {
+      return '<p class="eyebrow">Step 4</p><h1 class="h1">優先打通的流程</h1>' +
+        '<p class="lead">請選最多 3 項，決定 Phase 1 的導入順序。</p>' +
+        '<div id="chainList">' + renderChains() + '</div>';
+    }
+    if (STEPS[step] === "contact") {
+      return '<p class="eyebrow">Step 5</p><h1 class="h1">導入與聯絡</h1>' +
+        '<div class="field"><label>需要登入系統的帳號數</label><input type="text" id="accounts" placeholder="例如：25（含總部與第一線）" value="' + esc(data.accounts) + '"></div>' +
+        '<div class="field"><label>期望導入方式</label><select id="rollout">' +
+          '<option value="pilot">單位試點 → 再擴散</option><option value="parallel">多據點同期上線</option>' +
+          '<option value="rollout">分區分年 rollout</option><option value="hq">先總部報表，據點後上</option>' +
+        '</select></div>' +
+        '<div class="field"><label>與現有系統</label><select id="integration">' +
+          '<option value="replace">逐步取代</option><option value="coexist">並行一段時間</option>' +
+          '<option value="gap">只補缺口</option><option value="new">全新導入</option>' +
+        '</select></div>' +
+        '<div class="field"><label>公司名稱</label><input type="text" id="company" value="' + esc(data.contact.company) + '"></div>' +
+        '<div class="field"><label>聯絡人</label><input type="text" id="cname" value="' + esc(data.contact.name) + '"></div>' +
+        '<div class="field"><label>Email 或電話</label><input type="text" id="cemail" value="' + esc(data.contact.email || data.contact.phone) + '"></div>' +
+        '<div class="field"><label>若只能先做好一件事（選填）</label><textarea id="note" placeholder="一句話即可">' + esc(data.note) + '</textarea></div>';
+    }
+    return renderResult();
+  }
+
+  function updateTopbar(){
+    var stepEl = document.getElementById("topStep");
+    var urlEl = document.getElementById("topUrl");
+    if (stepEl) stepEl.textContent = headLabel();
+    if (urlEl) {
+      var href = window.location.href;
+      urlEl.href = href;
+      urlEl.textContent = href;
+    }
+    document.title = "ORBIT 企業經營診斷 — " + headLabel();
+  }
+
+  function paint(){
+    var showFoot = STEPS[step] !== "cover";
+    updateTopbar();
+    leaf.innerHTML =
+      '<div class="head"><span>ORBIT 企業經營診斷</span><b>' + headLabel() + '</b></div>' +
+      '<div class="scroll">' + renderBody() + '</div>' +
+      (showFoot ? '<div class="foot">' +
+        '<button type="button" class="btn sm ghost" id="btnPrev"' + (step <= 1 ? ' disabled' : '') + '>上一步</button>' +
+        '<span class="rail" style="--pct:' + pct() + '%"><i></i></span>' +
+        '<span>' + (step) + ' / ' + (STEPS.length - 1) + '</span>' +
+        (STEPS[step] !== "result" ? '<button type="button" class="btn sm" id="btnNext">下一步</button>' : '<span></span>') +
+      '</div>' : '');
+    bind();
+    if (STEPS[step] === "profile") {
+      document.getElementById("headcount").value = data.headcount;
+    }
+    if (STEPS[step] === "contact") {
+      document.getElementById("rollout").value = data.rollout;
+      document.getElementById("integration").value = data.integration;
+    }
+  }
+
+  function saveStep(){
+    if (STEPS[step] === "profile") {
+      data.industryId = document.getElementById("industry").value;
+      data.headcount = document.getElementById("headcount").value;
+    }
+    if (STEPS[step] === "contact") {
+      data.accounts = document.getElementById("accounts").value.trim();
+      data.rollout = document.getElementById("rollout").value;
+      data.integration = document.getElementById("integration").value;
+      data.contact.company = document.getElementById("company").value.trim();
+      data.contact.name = document.getElementById("cname").value.trim();
+      var c = document.getElementById("cemail").value.trim();
+      if (c.indexOf("@") >= 0) data.contact.email = c; else data.contact.phone = c;
+      data.note = document.getElementById("note").value.trim();
+    }
+  }
+
+  function validate(){
+    if (STEPS[step] === "profile" && data.sites.length === 0) {
+      alert("請至少選擇一項營運據點類型。");
+      return false;
+    }
+    if (STEPS[step] === "modules") {
+      var ind = ORBIT_SURVEY.getIndustry(data.industryId);
+      var singleSite = data.sites.indexOf("single") >= 0 && data.sites.indexOf("multi2") < 0;
+      var mods = ORBIT_SURVEY.getVisibleModules(data.industryId, { singleSite: singleSite });
+      var filled = mods.filter(function(m){ return data.moduleScores[m.id]; }).length;
+      if (filled < Math.min(3, mods.length)) {
+        alert("請至少評估 3 個模組的重要程度。");
+        return false;
+      }
+    }
+    if (STEPS[step] === "chains" && data.priorityChains.length === 0) {
+      alert("請至少選擇 1 項優先流程（最多 3 項）。");
+      return false;
+    }
+    return true;
+  }
+
+  function bind(){
+    var start = document.getElementById("btnStart");
+    if (start) start.onclick = function(){ step = 1; paint(); };
+
+    var prev = document.getElementById("btnPrev");
+    if (prev) prev.onclick = function(){ saveStep(); step = Math.max(1, step - 1); paint(); };
+
+    var next = document.getElementById("btnNext");
+    if (next) next.onclick = function(){
+      saveStep();
+      if (!validate()) return;
+      step = Math.min(STEPS.length - 1, step + 1);
+      paint();
+    };
+
+    document.querySelectorAll("[data-site]").forEach(function(el){
+      el.onclick = function(){
+        var id = el.getAttribute("data-site");
+        var i = data.sites.indexOf(id);
+        if (i >= 0) data.sites.splice(i, 1); else data.sites.push(id);
+        var box = document.getElementById("siteChips");
+        if (box) box.innerHTML = siteChips();
+        bind();
+      };
+    });
+
+    var industry = document.getElementById("industry");
+    if (industry) industry.onchange = function(){
+      data.industryId = industry.value;
+      data.moduleScores = {};
+      data.priorityChains = [];
+    };
+
+    document.querySelectorAll("[data-mod]").forEach(function(el){
+      el.onclick = function(){
+        data.moduleScores[el.getAttribute("data-mod")] = parseInt(el.getAttribute("data-score"), 10);
+        var list = document.getElementById("modList");
+        if (list) list.innerHTML = renderModules();
+        bind();
+      };
+    });
+
+    document.querySelectorAll("[data-chain]").forEach(function(el){
+      el.onchange = function(){
+        var id = el.getAttribute("data-chain");
+        if (el.checked) {
+          if (data.priorityChains.length >= 3) { el.checked = false; alert("最多選 3 項。"); return; }
+          data.priorityChains.push(id);
+        } else {
+          data.priorityChains = data.priorityChains.filter(function(x){ return x !== id; });
+        }
+        document.querySelectorAll(".chain").forEach(function(row){
+          var inp = row.querySelector("input");
+          row.classList.toggle("on", inp && inp.checked);
+        });
+      };
+    });
+
+    var copy = document.getElementById("btnCopy");
+    if (copy) copy.onclick = function(){
+      var t = window.__lastReport && window.__lastReport.assumptions;
+      if (t && navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ alert("已複製報價假設清單"); });
+    };
+    var json = document.getElementById("btnJson");
+    if (json) json.onclick = function(){
+      var t = JSON.stringify(window.__lastReport, null, 2);
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ alert("已複製 JSON"); });
+    };
+    var pr = document.getElementById("btnPrint");
+    if (pr) pr.onclick = function(){ window.print(); };
+    var restart = document.getElementById("btnRestart");
+    if (restart) restart.onclick = function(){
+      step = 0;
+      data = { industryId:"generic", headcount:"10", sites:[], moduleScores:{}, priorityChains:[], accounts:"", rollout:"pilot", integration:"replace", systems:[], contact:{company:"",name:"",email:"",phone:""}, note:"" };
+      paint();
+    };
+  }
+
+  paint();
+})();
+</script>
+</body>
+</html>
