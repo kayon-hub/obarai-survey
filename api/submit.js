@@ -1,4 +1,5 @@
-const NOTIFY = "hello@obarai.com";
+const NOTIFY_PRIMARY = "hello@obarai.com";
+const NOTIFY_FALLBACK = "kayon@obarai.com";
 
 function formatText(payload) {
   const d = payload.data || {};
@@ -42,6 +43,19 @@ function formatText(payload) {
   return lines.join("\n");
 }
 
+async function sendResend(key, { from, to, subject, text }) {
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + key,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ from, to, subject, text }),
+  });
+  const body = await r.text();
+  return { ok: r.ok, body };
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -65,26 +79,28 @@ export default async function handler(req, res) {
   const company = payload?.data?.contact?.company || "未填公司";
   const industry = payload?.recommendation?.industry?.name || payload?.data?.industryId || "";
   const subject = "【ORBIT 診斷】" + company + (industry ? " · " + industry : "");
+  const text = formatText(payload);
 
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + key,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "ORBIT <hello@obarai.com>",
-      to: [NOTIFY],
-      subject,
-      text: formatText(payload),
-    }),
+  // 1) 正式：已驗證網域後會走這條 → hello@obarai.com
+  let sent = await sendResend(key, {
+    from: "ORBIT <hello@obarai.com>",
+    to: [NOTIFY_PRIMARY],
+    subject,
+    text,
   });
+  if (sent.ok) return res.status(200).json({ ok: true, via: "resend_domain" });
 
-  if (!r.ok) {
-    const err = await r.text();
-    console.error("Resend error:", err);
-    return res.status(502).json({ ok: false, error: "send_failed" });
-  }
+  // 2) 備援：Resend 測試寄件（網域未驗證時）→ kayon@obarai.com
+  const fallbackText =
+    "※ 正式收件信箱：" + NOTIFY_PRIMARY + "（Resend 網域驗證完成後將直送）\n\n" + text;
+  sent = await sendResend(key, {
+    from: "ORBIT Survey <onboarding@resend.dev>",
+    to: [NOTIFY_FALLBACK],
+    subject: subject,
+    text: fallbackText,
+  });
+  if (sent.ok) return res.status(200).json({ ok: true, via: "resend_fallback" });
 
-  return res.status(200).json({ ok: true });
+  console.error("Resend error:", sent.body);
+  return res.status(502).json({ ok: false, error: "send_failed" });
 }
